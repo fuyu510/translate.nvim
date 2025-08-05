@@ -81,11 +81,11 @@ function M._translate(pos, cmd_args)
     pos._group = util.seq(#lines)
   end
 
-  local cmd, args = command(lines, cmd_args)
-  local stdio = pipes()
+  local cmd, args, stdin_body = command(lines, cmd_args)
+  local stdin, stdout, stderr = unpack(pipes())
 
   local handle
-  handle = luv.spawn(cmd, { args = args, stdio = stdio }, function(code)
+  handle = luv.spawn(cmd, { args = args, stdio = { stdin, stdout, stderr } }, function(code)
     if not config.get("silent") then
       if code == 0 then
         print("Translate success")
@@ -97,20 +97,42 @@ function M._translate(pos, cmd_args)
   end)
 
   if not handle then
+    stdin:close()
+    stdout:close()
+    stderr:close()
     return
   end
 
-  luv.read_start(
-    stdio[2],
-    vim.schedule_wrap(function(err, result)
+  if stdin_body then
+    stdin:write(stdin_body, function(err)
       assert(not err, err)
+      stdin:close()
+    end)
+  else
+    stdin:close()
+  end
 
-      if result then
+  local bufs = {}
+  luv.read_start(stdout, function(err, chunk)
+    assert(not err, err)
+    if chunk then
+      table.insert(bufs, chunk)
+    else
+      stdout:close()
+      local result = table.concat(bufs)
+      vim.schedule(function()
         result = M._run(parse_after, result, pos)
         output(result, pos)
-      end
-    end)
-  )
+      end)
+    end
+  end)
+
+  luv.read_start(stderr, function(err, chunk)
+    assert(not err, err)
+    if not chunk then
+      stderr:close()
+    end
+  end)
 end
 
 ---@param pos positions

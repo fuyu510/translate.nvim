@@ -23,10 +23,10 @@ function M.cmd(lines, command_args)
   end
 
   table.insert(args, source .. ":" .. target)
-  table.insert(args, text)
 
-  return cmd, args
+  return cmd, args, text
 end
+
 
 function M.complete_list()
   -- See <https://github.com/soimort/translate-shell/wiki/Languages>

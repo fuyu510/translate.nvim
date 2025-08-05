@@ -15,36 +15,26 @@ function M.cmd(lines, command_args)
     target = command_args.target,
     source = command_args.source,
   })
-  local cmd, args
-  if vim.fn.has("win32") == 1 then
-    cmd = "cmd.exe"
-    local path = util.write_temp_data(data)
-    args = {
-      "/c",
-      table.concat({
-        "curl",
-        "-sL",
-        M.url,
-        "-d",
-        "@" .. path,
-      }, " "),
-    }
-  else
-    cmd = "curl"
-    args = {
-      "-sL",
-      M.url,
-      "-d",
-      data,
-    }
-  end
+
+  local path = util.write_temp_data(data)
+  local curl_args = {
+    "-sL",
+    M.url,
+    "-d",
+    "@" .. path,
+  }
 
   local options = require("translate.config").get("preset").command.google
   if #options.args > 0 then
-    args = vim.list_extend(args, options.args)
+    curl_args = vim.list_extend(curl_args, options.args)
   end
 
-  return cmd, args
+  if vim.fn.has("win32") == 1 then
+    local command_string = table.concat(vim.list_extend({ "curl" }, curl_args), " ")
+    return "cmd.exe", { "/c", command_string }
+  else
+    return "curl", curl_args
+  end
 end
 
 function M.complete_list()
