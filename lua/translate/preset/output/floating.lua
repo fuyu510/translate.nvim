@@ -6,9 +6,15 @@ local M = {
   window = {},
 }
 
-function M.cmd(lines, _)
+function M.cmd(lines, _) 
   if type(lines) == "string" then
-    lines = { lines }
+    lines = vim.split(lines, "\n")
+  else
+    local new_lines = {}
+    for _, line in ipairs(lines) do
+      vim.list_extend(new_lines, vim.split(line, "\n"))
+    end
+    lines = new_lines
   end
 
   M.window.close()
