@@ -13,9 +13,9 @@ function M.cmd(lines, command_args)
   local text = table.concat(lines, "\n")
   local text_size = #text
 
-  if text_size > 6000 then
+  if text_size > 5120 then
     vim.notify(
-      string.format("Google Translate has a 6k character limit. Your text has %d characters", text_size),
+      string.format("Google Translate has a 5k character limit. Your text has %d characters", text_size),
       vim.log.levels.WARN,
       { title = "Translate.nvim" }
     )
