@@ -82,6 +82,9 @@ function M._translate(pos, cmd_args)
   end
 
   local cmd, args, stdin_body = command(lines, cmd_args)
+  if not cmd then
+    return
+  end
   local stdin, stdout, stderr = unpack(pipes())
 
   local handle

@@ -7,9 +7,21 @@ M.url =
 
 ---@param lines string[]
 ---@param command_args table
----@return string
----@return string[]
+---@return string|nil
+---@return string[]|nil
 function M.cmd(lines, command_args)
+  local text = table.concat(lines, "\n")
+  local text_size = #text
+
+  if text_size > 6000 then
+    vim.notify(
+      string.format("Google Translate has a 6k character limit. Your text has %d characters", text_size),
+      vim.log.levels.WARN,
+      { title = "Translate.nvim" }
+    )
+    return nil, nil
+  end
+
   local data = vim.json.encode({
     text = lines,
     target = command_args.target,
